@@ -1,0 +1,62 @@
+
+SoapBehavior
+============
+
+My main goal was to separate error handling. Connection problems (eg WSDL not
+found, timeouts) are now isolated from errors because of for example a "wrong"
+call (eg a missing field or wrong type). Also try/catch works even when xdebug
+is enabled (see Issue 609 http://bugs.xdebug.org/view.php?id=609)
+
+
+Usage
+-----
+
+To use it, your webservice component needs the following variables:
+
+[code]
+public $wsdl;
+public $config = array();
+public $behaviors = array(
+	'soapBehavior' => array(
+		'class' => 'ext.SoapBehavior'
+	),
+);
+[/code]
+
+I initialize $wsdl and $config through my config files
+(eg protected/config/main.php) and setComponents in the module I wanna use it.
+
+[code]
+'modules' => array(
+	'moduleName' => array(
+		'wsConfig' => array(
+			'wsdl' => 'http://example.com/wsdl',
+			'config' => array(
+				'proxyHost' => 'example.com',
+				'proxyPort' => '8080',
+			),
+		),
+	),
+[/code]
+
+[code]
+$this->setComponents(array(
+	'compName' =>
+		CMap::mergeArray(array('class' => 'module.components.WSComponent'),
+			$this->wsConfig),
+));
+[/code]
+
+
+SOAP Call
+--------
+
+To do a call you have to run soapRequest($nameOfSoapMethod, $request):
+
+[code]
+$ret = $this->soapRequest('getUserInformation', array(
+	'userId' => 321,
+));
+$ret['success'];  // indicates if the soap call was successful
+$ret['wsReturn']; // what the webservice returned
+[/code]
